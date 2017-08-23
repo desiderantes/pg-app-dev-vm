@@ -51,7 +51,9 @@ echo "host    all             all             all                     md5" >> "$
 echo "client_encoding = utf8" >> "$PG_CONF"
 
 # Locale is missing by default, so add it in
-sudo locale-gen en_GB.UTF-8
+# https://unix.stackexchange.com/questions/169039/problem-with-locale-setting-locale-failed
+sudo sed -i '/en_GB.UTF-8/s/^#//g' /etc/locale.gen
+sudo locale-gen 
 
 # Restart so that all new config is loaded:
 service postgresql restart
