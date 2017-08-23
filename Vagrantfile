@@ -9,7 +9,6 @@
 $script = <<SCRIPT
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
-[ -d src ] || mkdir src
 SCRIPT
 
 Vagrant.configure("2") do |config|
