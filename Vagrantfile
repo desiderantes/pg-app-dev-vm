@@ -9,9 +9,8 @@
 $script = <<SCRIPT
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
-SCRIPT
-
 [ -d src ] || mkdir src
+SCRIPT
 
 Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: $script
