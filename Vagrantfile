@@ -17,8 +17,8 @@ Vagrant.configure("2") do |config|
 end
 
 Vagrant::Config.run do |config|
-  config.vm.box = "debian/jessie64"
-  config.vm.box_url = "https://app.vagrantup.com/debian/boxes/jessie64"
+  config.vm.box = "debian/stretch64"
+  config.vm.box_url = "https://app.vagrantup.com/debian/boxes/stretch64"
   config.vm.host_name = "postgresql" 
 
   config.vm.share_folder "bootstrap", "/mnt/bootstrap", ".", :create => true
