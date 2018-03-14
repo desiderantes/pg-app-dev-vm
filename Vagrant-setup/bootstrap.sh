@@ -8,7 +8,7 @@ APP_DB_PASS=dbpass
 APP_DB_NAME=$APP_DB_USER
 
 # Edit the following to change the version of PostgreSQL that is installed
-PG_VERSION=9.4
+PG_VERSION=10
 
 ###########################################################
 # Changes below this line are probably not necessary
@@ -53,7 +53,7 @@ PG_REPO_APT_SOURCE=/etc/apt/sources.list.d/pgdg.list
 if [ ! -f "$PG_REPO_APT_SOURCE" ]
 then
   # Add PG apt repo:
-  echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > "$PG_REPO_APT_SOURCE"
+  echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" > "$PG_REPO_APT_SOURCE"
 
   # Add PGDG repo key:
   wget --quiet -O - https://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | apt-key add -
@@ -63,7 +63,7 @@ fi
 apt-get update
 apt-get -y upgrade
 
-apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION"
+apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION plv8 postgis postgresql-server-dev-all devscripts"
 
 PG_CONF="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
 PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
@@ -78,8 +78,13 @@ echo "host    all             all             all                     md5" >> "$
 # Explicitly set default client_encoding
 echo "client_encoding = utf8" >> "$PG_CONF"
 
+# Setup allowed extensions for non-superusers
+
+echo "local_preload_libraries = 'pgextwlist'" >> "$PG_CONF"
+echo "extwlist.extensions = 'postgis,postgis_topology,fuzzystrmatch,postgis_tiger_geocoder,plv8,unaccent,pgcrypto'" >> "$PG_CONF"
+
 # Restart so that all new config is loaded:
-service postgresql restart
+systemctl start postgresql
 
 cat << EOF | su - postgres -c psql
 -- Create the database user:
@@ -91,6 +96,14 @@ CREATE DATABASE $APP_DB_NAME WITH OWNER=$APP_DB_USER
                                   LC_CTYPE='en_US.utf8'
                                   ENCODING='UTF8'
                                   TEMPLATE=template0;
+\connect $APP_DB_NAME
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS postgis_topology;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+CREATE EXTENSION IF NOT EXISTS plv8;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 EOF
 
 # Tag the provision time:
