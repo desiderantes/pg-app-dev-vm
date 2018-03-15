@@ -63,7 +63,7 @@ fi
 apt-get update
 apt-get -y upgrade
 
-apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION" "postgresql-$PG_VERSION-cron" "postgresql-$PG_VERSION-plv8" "postgresql-$PG_VERSION-postgis-2.4"
+apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION" "postgresql-$PG_VERSION-cron" "postgresql-$PG_VERSION-plv8" "postgresql-$PG_VERSION-postgis-2.4" "postgresql-$PG_VERSION-pgextwlist"
 
 PG_CONF="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
 PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
@@ -88,10 +88,11 @@ echo "cron.database_name = 'postgres'" >> "$PG_CONF"
 echo "extwlist.extensions = 'postgis,postgis_topology,fuzzystrmatch,postgis_tiger_geocoder,plv8,unaccent,pgcrypto,pg_cron'" >> "$PG_CONF"
 
 # Restart so that all new config is loaded (systemd uses a borked template for the .service file, so we force the old init.d file):
+systemctl stop postgresql
+systemctl disable postgresql
 rm /lib/systemd/system/postgresql.service
-systemctl daemon-reload
-systemctl enable postgresql
-systemctl start postgresql
+systemctl enable "postgresql@$PG_VERSION-main"
+systemctl start "postgresql@$PG_VERSION-main"
 
 cat << EOF | su - postgres -c psql
 -- Create the database user:
