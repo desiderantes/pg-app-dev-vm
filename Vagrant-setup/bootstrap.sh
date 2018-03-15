@@ -87,7 +87,10 @@ echo "shared_preload_libraries = 'pg_cron'" >> "$PG_CONF"
 echo "cron.database_name = 'postgres'" >> "$PG_CONF"
 echo "extwlist.extensions = 'postgis,postgis_topology,fuzzystrmatch,postgis_tiger_geocoder,plv8,unaccent,pgcrypto,pg_cron'" >> "$PG_CONF"
 
-# Restart so that all new config is loaded:
+# Restart so that all new config is loaded (systemd uses a borked template for the .service file, so we force the old init.d file):
+rm /lib/systemd/system/postgresql.service
+systemctl daemon-reload
+systemctl enable postgresql
 systemctl start postgresql
 
 cat << EOF | su - postgres -c psql
